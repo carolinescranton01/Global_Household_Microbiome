@@ -1,0 +1,11 @@
+sampleid	date	time	location	croptype
+sample1	1_1_25	11:00	field1	raddish
+sample2	1_1_25	11:30	field2	carrot
+sample3	1_1_25	11:45	field3	lettuce
+sample4	1_2_25	13:00	field1	raddish
+sample5	1_2_25	13:05	field2	carrot
+sample6	1_3_25	12:20	field1	raddish
+sample7	1_3_25	12:50	field 2	carrot
+sample8	1_3_25	13:20	field 3	lettuce
+sample9	1_3_25	14:00	field 3	lettuce
+sample10	1_3_25	14:15	field 3	lettuce
