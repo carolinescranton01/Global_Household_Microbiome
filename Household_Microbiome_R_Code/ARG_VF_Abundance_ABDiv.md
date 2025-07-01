@@ -165,9 +165,38 @@ res_beta <- ggplot(pcoa_df_resbeta, aes(x = PC1, y = PC2, color = Household_Loca
 print(res_beta)
 ```
 
+Running a PERMANOVA test with wide_data and metadata (matched sampleIDs with any metadata of interest):
 
+```
+# Remove any NAs and replace with 0
+wide_data_res <- wide_data_res %>%
+  filter(rowSums(is.na(.)) == 0)
 
+# Calculate bray curtis distances (not counting first column, which is sampleIDs)
+bray_curtis_dist <- vegdist(wide_data_res[,-1], method = "bray")
 
+# Convert distances to matrix
+dist_matrix <- as.matrix(bray_curtis_dist)
+
+# Re-add the sampleIDs to the distance matrix
+rownames(dist_matrix) <- wide_data_res$SampleID
+
+# Verify the two items have the same sampleIDs
+cat("Samples in distance matrix:", head(rownames(dist_matrix)), "\n")
+cat("Samples in metadata:", head(metadata), "\n")
+
+# Verify that the two items have the same number of rows
+cat("Rows in distance matrix:", nrow(dist_matrix), "\n")
+cat("Rows in metadata:", nrow(metadata), "\n")
+
+# Convert matrix to distance for PERMANOVA
+dist <- as.dist(dist_matrix)
+
+# Conduct PERMANOVA test (change Household_Location to metadata variable of interest)
+PERMANOVA <- adonis2(dist ~ Household_Location, 
+                       data = metadata)
+print(PERMANOVA)
+```
 
 
 
