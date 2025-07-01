@@ -148,49 +148,6 @@ plot_ordination(biom_rar, biom_data, "bray", color = "Geographic_Location", shap
     font("xlab", size = 12, face = "bold") + font("title", size = 10, face = "bold")
 ```
 
-**Note**: for ARG/VF analysis, gene abundance data must be converted into a matrix where rows are samples and columns are genes, with cells filled with the abundance in the sample. If a gene was not found in the sample, the cell must have a 0 (not an N/A value). Sample names must match between metadata and the matrix, and they must have the same number of rows. The following code was used to run the beta diversity PERMANOVA test on the ARG/VF datasets:
-
-```
-# Import data (or assign variables)
-beta_div_data # table with columns sampleIDs, gene names, and scaled occurances
-metadata # table with matched sampleIDs and any other metadata for analysis
-
-# pivot the data with dpylr to wide format (rows are sampleIDs, columns are scaled occurances of every gene across entire dataset for all samples)
-wide_data <- beta_div_data %>%
-  pivot_wider(names_from = Gene_Name, 
-              values_from = Scaled_Occurances, 
-              values_fill = 0)
-
-# Remove any NAs and replace with 0
-wide_data <- wide_data %>%
-  filter(rowSums(is.na(.)) == 0)
-
-# Calculate bray curtis distances (not counting first column, which is sampleIDs)
-bray_curtis_dist <- vegdist(wide_data[,-1], method = "bray")
-
-# Convert distances to matrix
-dist_matrix <- as.matrix(bray_curtis_dist)
-
-# Re-add the sampleIDs to the distance matrix
-rownames(dist_matrix) <- wide_data$SampleID
-
-# Verify the two items have the same sampleIDs
-cat("Samples in distance matrix:", head(rownames(dist_matrix)), "\n")
-cat("Samples in metadata:", head(metadata), "\n")
-
-# Verify that the two items have the same number of rows
-cat("Rows in distance matrix:", nrow(dist_matrix), "\n")
-cat("Rows in metadata:", nrow(metadata), "\n")
-
-# Convert matrix to distance for PERMANOVA
-dist <- as.dist(dist_matrix)
-
-# Conduct PERMANOVA test (change Household_Location to metadata variable of interest)
-PERMANOVA <- adonis2(dist ~ Household_Location, 
-                       data = metadata)
-print(PERMANOVA)
-```
-
 **Generating taxonomic relative abundance graphs**
 
 ```
