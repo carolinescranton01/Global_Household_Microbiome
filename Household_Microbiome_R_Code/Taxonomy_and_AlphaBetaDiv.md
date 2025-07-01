@@ -61,6 +61,9 @@ biomfile_nohuman <- subset_taxa(biomfile, Family != "Hominidae")
 ntaxa(biomfile)-ntaxa(biomfile_nohuman)
 biomfile_nohuman2 <- subset_taxa(biomfile, Genus != "Homo")
 ntaxa(biomfile)-ntaxa(biomfile_nohuman2)
+
+# Alternativly, fulter to only include kingdom Bacteria
+biomfile <- subset_taxa(biomfile, Kingdom == "Bacteria")
 ```
 
 Now we should just be left with bacteria reads, and can start analyzing these reads
@@ -126,11 +129,16 @@ household_shannon_div <- ggboxplot(diversity_dataframe, x = "Household_Location"
     facet_wrap(~Geographic_Location)
 ```
 
-**Beta diversity calculations**
+**Beta diversity calculations and PERMANOVA test**
 
-PCoA ordination and plot. Data can be subsetted before ordination to run an analysis on specific sets of samples
+PCoA ordination, PERMANOVA, and plot from phyloseq object. Data can be subsetted before ordination to run an analysis on specific sets of samples
 
 ```
+dist_bray <- phyloseq::distance(biom_rar, method = "bray")
+metadata <- data.frame(sample_data(biom_rar))
+PERMANOVA_result <- adonis2(dist_bray ~ Geographic_Location, data = metadata)
+print(PERMANOVA_result)
+
 biom_data <- ordinate(biom_rar, "PCoA", "bray")
 plot_ordination(biom_rar, biom_data, "bray", color = "Geographic_Location", shape = "Geographic_Location") +
     geom_point(size = 1) +
@@ -138,6 +146,49 @@ plot_ordination(biom_rar, biom_data, "bray", color = "Geographic_Location", shap
     font("ylab", size = 12, face = "bold") + 
     stat_ellipse(aes(color = Geographic_Location), level = 0.95, size = 0.5) + 
     font("xlab", size = 12, face = "bold") + font("title", size = 10, face = "bold")
+```
+
+**Note**: for ARG/VF analysis, gene abundance data must be converted into a matrix where rows are samples and columns are genes, with cells filled with the abundance in the sample. If a gene was not found in the sample, the cell must have a 0 (not an N/A value). Sample names must match between metadata and the matrix, and they must have the same number of rows. The following code was used to run the beta diversity PERMANOVA test on the ARG/VF datasets:
+
+```
+# Import data (or assign variables)
+beta_div_data # table with columns sampleIDs, gene names, and scaled occurances
+metadata # table with matched sampleIDs and any other metadata for analysis
+
+# pivot the data with dpylr to wide format (rows are sampleIDs, columns are scaled occurances of every gene across entire dataset for all samples)
+wide_data <- beta_div_data %>%
+  pivot_wider(names_from = Gene_Name, 
+              values_from = Scaled_Occurances, 
+              values_fill = 0)
+
+# Remove any NAs and replace with 0
+wide_data <- wide_data %>%
+  filter(rowSums(is.na(.)) == 0)
+
+# Calculate bray curtis distances (not counting first column, which is sampleIDs)
+bray_curtis_dist <- vegdist(wide_data[,-1], method = "bray")
+
+# Convert distances to matrix
+dist_matrix <- as.matrix(bray_curtis_dist)
+
+# Re-add the sampleIDs to the distance matrix
+rownames(dist_matrix) <- wide_data$SampleID
+
+# Verify the two items have the same sampleIDs
+cat("Samples in distance matrix:", head(rownames(dist_matrix)), "\n")
+cat("Samples in metadata:", head(metadata), "\n")
+
+# Verify that the two items have the same number of rows
+cat("Rows in distance matrix:", nrow(dist_matrix), "\n")
+cat("Rows in metadata:", nrow(metadata), "\n")
+
+# Convert matrix to distance for PERMANOVA
+dist <- as.dist(dist_matrix)
+
+# Conduct PERMANOVA test (change Household_Location to metadata variable of interest)
+PERMANOVA <- adonis2(dist ~ Household_Location, 
+                       data = metadata)
+print(PERMANOVA)
 ```
 
 **Generating taxonomic relative abundance graphs**
