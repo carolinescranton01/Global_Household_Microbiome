@@ -56,7 +56,7 @@ If you are planning on analyzing the taxonomic data in R, you need to upload you
 
 ```
 cd KRAKEN2
-kraken2-biom *_report.txt -m metadata.tsv -o output.biom
+kraken-biom *_report.txt -m metadata.tsv -o output.biom
 ```
 
 The output.biom file can be exported off the HPC and uploaded into R for analysis. 
