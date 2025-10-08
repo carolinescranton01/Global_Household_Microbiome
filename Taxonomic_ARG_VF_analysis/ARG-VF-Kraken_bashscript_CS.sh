@@ -6,7 +6,6 @@ mkdir NCBI
 mkdir CARD
 mkdir resfinder
 
-conda init
 conda activate Antibiotics
 
 for f in *.fastq
