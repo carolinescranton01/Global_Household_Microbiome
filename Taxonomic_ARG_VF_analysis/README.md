@@ -21,6 +21,8 @@ To run DeepARG, you should create a separate environment since it requires pytho
 ```
 conda create -n DeepARG python=2.7.18
 conda activate DeepARG
+pip install git+https://github.com/gaarangoa/deeparg.git
+# note - there is an install command on DeepARG's github about downloading data. Data (the database) has already been downloaded to the groups folder /groups/kcooper/deepARG_db
 conda install -c bioconda diamond==0.9.24 trimmomatic vsearch bedtools==2.29.2 bowtie2==2.3.5.1 samtools
 conda deactivate
 ```
