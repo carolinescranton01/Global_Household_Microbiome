@@ -15,14 +15,12 @@ nano analysis.sh
 Next, install the following packages to run the different ARG/VF detection pipelines and kraken. You may have some of these installed already (ie. Kraken2 in the Metagenomics environment), which you can try to install them again to check (which will just update them) or skip them. Documentation for installation is below:
 
 **Deeparg**
-
+**NOTE: as of 10-8-25, DeepARG install does not work. I am trying to figure it out but the database is not on the HPC and the command in the script will not run**
 To run DeepARG, you should create a separate environment since it requires python 2.7 which is outdated. Then, you will install all of the packages as follows using one line of code which specifies which versions
 
 ```
 conda create -n DeepARG python=2.7.18
 conda activate DeepARG
-pip install git+https://github.com/gaarangoa/deeparg.git
-# note - there is an install command on DeepARG's github about downloading data. Data (the database) has already been downloaded to the groups folder /groups/kcooper/deepARG_db
 conda install -c bioconda diamond==0.9.24 trimmomatic vsearch bedtools==2.29.2 bowtie2==2.3.5.1 samtools
 conda deactivate
 ```
