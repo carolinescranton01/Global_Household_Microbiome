@@ -56,9 +56,9 @@ If you are planning on analyzing the taxonomic data in R, you need to upload you
 
 ```
 cd KRAKEN2
-kraken-biom *_report.txt -m metadata.tsv -o output.biom
+kraken-biom sample_1_report.txt sample_2_report.txt sample_3_report.txt sample_4_report.txt -m metadata.tsv -o output.biom
 ```
-
+Sample names must be listed out and match the sample_ID column (first column) of the metadata file (ie. sample_1_report.txt matches sample_1_report in the metadata file).
 The output.biom file can be exported off the HPC and uploaded into R for analysis. 
 
 After this script was run, all data was exported off the HPC in folders and compiled into excel spreadsheets for further analysis in R using the writeexcel.py and sortexcel.py python scripts, found in this github repository. 
