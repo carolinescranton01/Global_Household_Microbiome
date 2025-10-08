@@ -27,7 +27,7 @@ conda activate DeepARG
 for f in *.fastq
 do
 n=${f%%.fastq}
-deeparg predict --model SS --type nucl --input ${n}.fastq --out ${n}_deeparg -d /xdisk/kcooper/carolinescranton/deeparg_database
+deeparg predict --model SS --type nucl --input ${n}.fastq --out ${n}_deeparg -d /groups/kcooper/deeparg_DB
 mv *_deeparg* DeepARG
 done
 
@@ -37,7 +37,7 @@ conda activate Metagenomics
 for f in *.fastq
 do
 n=${f%%.fastq}
-kraken2 --db /xdisk/kcooper/kcooper/Kraken_Special_DB --report ${n}_K2_report.txt --output ${n}_K2_output.txt ${n}.fastq
+kraken2 --db /groups/kcooper/MY_KRAKEN2_DB --report ${n}_K2_report.txt --output ${n}_K2_output.txt ${n}.fastq
 mv *.txt KRAKEN2
 done
 
