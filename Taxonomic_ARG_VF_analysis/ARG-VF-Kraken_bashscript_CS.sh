@@ -27,7 +27,7 @@ conda activate DeepARG
 for f in *.fastq
 do
 n=${f%%.fastq}
-deeparg predict --model SS --type nucl --input ${n}.fastq --out ${n}_deeparg -d /groups/kcooper/deeparg_DB
+deeparg predict --model SS --type nucl --input ${n}.fastq --out ${n}_deeparg -d /groups/kcooper/deepARG_db
 mv *_deeparg* DeepARG
 done
 
