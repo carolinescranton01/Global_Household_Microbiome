@@ -7,12 +7,24 @@ This code was used to analyze all samples for both bacterial, viral, and eukaryo
 **Step 1. Load required packages**
 
 ```
-# note - you may need a package manager. BiocManager works well. In this case, run this code first to install BiocManager:
-    if (!require("BiocManager", quietly = TRUE))
-        install.packages("BiocManager")
-# and then replace all library(packagename) with BiocManager::install("PackageName") - make sure to include "quotations" in the BiocManager code
+# note - you may need a package manager. BiocManager works well. 
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
 
-library(speedyseq)
+BiocManager::install("microbiome") 
+BiocManager::install("phyloseq") 
+BiocManager::install("microbiomeutilities") 
+BiocManager::install("RColorBrewer")
+BiocManager::install("ggpubr")
+BiocManager::install("DT")
+BiocManager::install("data.table")
+BiocManager::install("dplyr")
+BiocManager::install("writexl")
+BiocManager::install("openxlsx")
+BiocManager::install("vegan")
+
+# If packages are already installed, load via library()
+
 library(microbiome) 
 library(phyloseq) 
 library(microbiomeutilities) 
@@ -23,6 +35,7 @@ library(data.table)
 library(dplyr)
 library(writexl)
 library(openxlsx)
+library(vegan)
 ```
 
 **Step 2: Import biom file:**
@@ -68,7 +81,7 @@ biomfile_nohuman2 <- subset_taxa(biomfile, Genus != "Homo")
 ntaxa(biomfile)-ntaxa(biomfile_nohuman2)
 
 # Alternativly, fulter to only include kingdom Bacteria
-biomfile <- subset_taxa(biomfile, Kingdom == "Bacteria")
+biomfile <- subset_taxa(biomfile, Domain == "Bacteria")
 ```
 
 Now we should just be left with bacteria reads, and can start analyzing these reads
@@ -118,6 +131,11 @@ barplot(sample_sums(biom_rar), las =2)
 
 ```
 biom.alphadiv <- alpha(biom_rar, index = "all")
+biom.alphadiv$SampleID <- rownames(biom.alphadiv) # sample IDs are the last column
+
+write.xlsx(biom.alphadiv, file = "alpha.xlsx")
+# add metadata separately in Excel
+diversity_dataframe <- read.xlsx(xlsxFile="alpha.xlsx")
 ```
 
 **NOTE**: Alpha diversity was exported into excel and added into a new dataframe with sample metadata (sample ID, geographic location, household location, etc) which was re-uploaded to R and used for ggplot box+whisker plots which used ANOVA for statistical analysis. 
@@ -158,10 +176,9 @@ plot_ordination(biom_rar, biom_data, "bray", color = "Geographic_Location", shap
 ```
 biom_phylum <- aggregate_top_taxa2(biomfile, top = 10, "Phylum") 
 biom_phylum.rel <- microbiome::transform(biom_phylum, "compositional")
-biom_phylum.rel <- psmelt(biom_phylum.rel)
+dfphy <- psmelt(biom_phylum.rel)
 
 # Convert phyloseq object to a data frame
-dfphy <- psmelt(biom_phylum.rel)
 biom_phy.rel.abun <- ggplot(dfphy, aes(x = Household_Location, y = Abundance, 
 fill = Phylum)) +
 geom_bar(stat = "identity") +
