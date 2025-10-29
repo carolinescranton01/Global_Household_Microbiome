@@ -7,6 +7,11 @@ This code was used to analyze all samples for both bacterial, viral, and eukaryo
 **Step 1. Load required packages**
 
 ```
+# note - you may need a package manager. BiocManager works well. In this case, run this code first to install BiocManager:
+    if (!require("BiocManager", quietly = TRUE))
+        install.packages("BiocManager")
+# and then replace all library(packagename) with BiocManager::install("PackageName") - make sure to include "quotations" in the BiocManager code
+
 library(speedyseq)
 library(microbiome) 
 library(phyloseq) 
