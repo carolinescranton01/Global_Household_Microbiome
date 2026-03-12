@@ -11,17 +11,17 @@ This code was used to analyze all samples for both bacterial, viral, and eukaryo
 if (!require("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
-BiocManager::install("microbiome") 
-BiocManager::install("phyloseq") 
-BiocManager::install("microbiomeutilities") 
-BiocManager::install("RColorBrewer")
-BiocManager::install("ggpubr")
-BiocManager::install("DT")
-BiocManager::install("data.table")
-BiocManager::install("dplyr")
-BiocManager::install("writexl")
-BiocManager::install("openxlsx")
-BiocManager::install("vegan")
+BiocManager::install("microbiome") # Version 1.30.0
+BiocManager::install("phyloseq") # Version 1.52.0
+BiocManager::install("microbiomeutilities") # Version 1.0.17
+BiocManager::install("RColorBrewer") # Version 1.1.3
+BiocManager::install("ggpubr") # Version 0.6.3
+BiocManager::install("DT") # Version 0.34.0
+BiocManager::install("data.table") # Version 1.18.2.1
+BiocManager::install("dplyr") # Version 1.2.0
+BiocManager::install("writexl") # Version 1.5.4
+BiocManager::install("openxlsx") # Version 4.8.2.1
+BiocManager::install("vegan") # Version 2.7.3
 
 # If packages are already installed, load via library()
 
