@@ -7,14 +7,13 @@ Uses the .biom file from kraken-biom (kraken2 taxonomic analysis)
 **Step 1 - Load required packages**
 
 ```
-library(speedyseq)
-library(phyloseq)
-library(dplyr)
-library(knitr)
-library(microbiome)
-library(microbiomeutilities)
-library(stringr)
-library(writexl)
+library(phyloseq) # Version 1.52.0
+library(dplyr) # Version 1.2.0
+library(knitr) # Version 1.51
+library(microbiome) # Version 1.30.0
+library(microbiomeutilities) # Version 1.0.17
+library(stringr) # Version 1.6.0
+library(writexl) # Version 1.5.4
 ```
 
 **Step 2 - import biom file**
