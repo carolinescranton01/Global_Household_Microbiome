@@ -5,16 +5,16 @@
 **Step 1 - load required packages**
 
 ```
-library(ggplot2)
-library(ggpubr)
-library(tidyverse)
-library(broom)
-library(AICcmodavg)
-library(readxl)
-library(rstatix)
-library(microbiome)
-library(dplyr)
-library(writexl)
+library(ggplot2) # Version 4.0.2
+library(ggpubr) # Version 0.6.3
+library(tidyverse) # Version 2.0.0
+library(broom) # Version 1.0.12
+library(AICcmodavg) # Version 2.3.4
+library(readxl) # Version 1.4.5
+library(rstatix) # Version 1.7.3
+library(microbiome) # Version 1.30.0
+library(dplyr) # Version 1.2.0
+library(writexl) # Version 1.5.4
 ```
 
 **Step 2 - re-format abricate outputs (.tab files, one per sample per database) into excel sheets - outside of R**
