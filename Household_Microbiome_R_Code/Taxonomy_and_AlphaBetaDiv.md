@@ -22,6 +22,7 @@ BiocManager::install("dplyr") # Version 1.2.0
 BiocManager::install("writexl") # Version 1.5.4
 BiocManager::install("openxlsx") # Version 4.8.2.1
 BiocManager::install("vegan") # Version 2.7.3
+BiocManager::install("ggplot2") # Version 4.0.2
 
 # If packages are already installed, load via library()
 
@@ -36,6 +37,7 @@ library(dplyr)
 library(writexl)
 library(openxlsx)
 library(vegan)
+library(ggplot2)
 ```
 
 **Step 2: Import biom file:**
