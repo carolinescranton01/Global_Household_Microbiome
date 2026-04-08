@@ -82,7 +82,7 @@ ntaxa(biomfile)-ntaxa(biomfile_nohuman)
 biomfile_nohuman2 <- subset_taxa(biomfile, Genus != "Homo")
 ntaxa(biomfile)-ntaxa(biomfile_nohuman2)
 
-# Alternativly, fulter to only include kingdom Bacteria
+# Alternativly, filter to only include kingdom Bacteria
 biomfile <- subset_taxa(biomfile, Domain == "Bacteria")
 ```
 
