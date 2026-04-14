@@ -26,3 +26,6 @@ Run the script using python3 with the arguments kraken_folder (required, change 
 ```
 python3 pathogendetection.py kraken_folder seq_folder --taxids 123 456 789 1011 1213
 ```
+
+
+NOTE: pathogendetect_sequences.py pulls the sequences of the reads that were mapped to the taxID and does not require the H_L naming convention, just that the kraken output and fastq have the same name (sample1.fastq and sample1_output.txt). It runs essentially the same way and has an extra flag --kmer_length to specify if you want longer (greater than 35 bp) kmers for identifying a read as a specific taxID.
