@@ -14,6 +14,27 @@ do
 done
 ```
 
+Summary stats for raw and filtered reads were generated using seqkit with the following script:
+```
+#!/bin/bash
+
+INPUT_DIR="filtered"
+OUTFILE="seqkit_filtered_stats_summary.tsv"
+
+echo -e "sample\tformat\tnum_seqs\tsum_len\tmin_len\tavg_len\tmax_len" > "$OUTFILE"
+
+for f in "$INPUT_DIR"/*.fastq; do
+
+    sample=$(basename "$f")
+
+    seqkit stats -a "$f" | tail -n +2 | awk -v s="$sample" '{
+        print s "\t" $0
+    }' >> "$OUTFILE"
+
+done
+```
+Where INPUT_DIR and OUTFILE were modified to match directory names.
+
 First, create the script either by downloading it from this repository and uploading it to your HPC folder, or by manually creating a file, copying and pasting the text in the script into the file, and saving it by using the following commands: 
 ```
 nano analysis.sh
