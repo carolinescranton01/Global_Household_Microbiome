@@ -27,7 +27,7 @@ for f in "$INPUT_DIR"/*.fastq; do
 
     sample=$(basename "$f")
 
-    seqkit stats -a "$f" | tail -n +2 | awk -v s="$sample" '{
+    seqkit stats -T "$f" | tail -n +2 | awk -v s="$sample" '{
         print s "\t" $0
     }' >> "$OUTFILE"
 
