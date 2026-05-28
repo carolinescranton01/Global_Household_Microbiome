@@ -5,6 +5,15 @@ Upload the script to the HPC (alternatively, create a new bash script using the 
 
 Additionally, if you are planning on analyzing your kraken2 taxonomic data in R, you will need to upload a metadata file into the kraken2 folder which is created when you run the script in order to make a .biom file (a type of file containing sequence information and metadata which can be analyzed in R). Metadata needs to be in a tab-separated values (.tsv, make sure there are no commas!) spreadsheet, and needs to have one column which corresponds to the sequencing sample IDs. An example metadata sheet is attached to this github repository, with the first column 'sampleid' matching the example sample names mentioned in the previous paragraph (sample1, sample2, etc) and then additional columns with types of metadata which may be important to include about the samples, like where they are from, what date they were collected, etc. The metadata will be specific to your project, and should be as detailed as possible - any way which you may want to group the data in future analysis should be included in the metadata. The file should be saved as metadata.tsv and uploaded to the KRAKEN2 folder after the script runs. See the end of this page for information on kraken-biom.
 
+Prior to this, quality control was perfomed with filtlong using the following loop:
+```
+for file in *.fastq
+do
+    base=$(basename "$file" .fastq)
+    filtlong --min_length 1000 --keep_percent 90 "$file" > "${base}_filt.fastq"
+done
+```
+
 First, create the script either by downloading it from this repository and uploading it to your HPC folder, or by manually creating a file, copying and pasting the text in the script into the file, and saving it by using the following commands: 
 ```
 nano analysis.sh
