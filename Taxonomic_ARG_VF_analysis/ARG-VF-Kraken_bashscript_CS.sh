@@ -11,10 +11,10 @@ conda activate Antibiotics
 for f in *.fastq
 do
 n=${f%%.fastq}
-abricate --db vfdb --threads 94 --mincov 15 ${n}.fastq > ${n}_VFDB.tab
-abricate --db resfinder --threads 94 --mincov 15 ${n}.fastq > ${n}_resfinder.tab
-abricate --db ncbi --threads 94 --mincov 15 ${n}.fastq > ${n}_NCBI.tab
-abricate --db card --threads 94 --mincov 15 ${n}.fastq > ${n}_CARD.tab
+abricate --db vfdb --threads 94 --mincov 50 --minid 50 ${n}.fastq > ${n}_VFDB.tab
+abricate --db resfinder --threads 94 --mincov 50 --minid 50 ${n}.fastq > ${n}_resfinder.tab
+abricate --db ncbi --threads 94 --mincov 50 --minid 50 ${n}.fastq > ${n}_NCBI.tab
+abricate --db card --threads 94 --mincov 50 --minid 50 ${n}.fastq > ${n}_CARD.tab
 mv *CARD.tab CARD
 mv *NCBI.tab NCBI
 mv *VFDB.tab VFDB
