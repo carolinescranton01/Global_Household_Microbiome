@@ -4,4 +4,4 @@ This folder contains R scripts (generated using R version 4.3.1 in RStudio) used
 
 The data in this project was single-end long read sequencing data (sequenced using Oxford Nanopore technology), which was then run through five databases to identify antibiotic resistance genes and virulence factor genes. The data was also analyzed using Kraken2 and Bracken for taxonomy. See cs_projects/ARG_VF_analysis for information on this. 
 
-R used to create figures and run diversity analyses as well as statistical analysis on the data. 
+R used to create figures and run diversity analyses as well as statistical analysis on the data. For both the bacterial microbiome and the DNA virome, the same protocols were used for figure generation and statistical analysis.
