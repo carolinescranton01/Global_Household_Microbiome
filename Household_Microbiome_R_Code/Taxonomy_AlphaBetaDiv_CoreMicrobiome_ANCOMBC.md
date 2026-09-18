@@ -25,6 +25,8 @@ BiocManager::install("vegan") # Version 2.7.3
 BiocManager::install("ggplot2") # Version 4.0.2
 BiocManager::install("decontam") # Version 1.32.0
 BiocManager::install("multcompView") # Version 0.1.11
+BiocManager::install("stringr") # Version 1.6.0
+BiocManager::install("ANCOMBC") # Version 2.14.0
 
 
 # If packages are already installed, load via library()
@@ -43,6 +45,8 @@ library(vegan)
 library(ggplot2)
 library(decontam)
 library(multcompView)
+library(stringr)
+library(ANCOMBC)
 ```
 
 **Step 2: Import biom file:**
@@ -263,3 +267,164 @@ print(biom_phy.rel.abun)
 ```
 
 **NOTE:** The same code as above were used for other taxonomic levels. 'X' was changed to geographic_location when looking at each city overall. Data can be subsetted by taxonomic ranks to look at specific geographic or household location’s taxonomy
+
+### Part 3 - core microbiome calculations
+
+**Step 1 - import biom file**
+
+Use the same biomfile object as previous analyses (in this example called biomfile, and changed to biom_core) and fix metadata if needed (see Taxonomy_and_AlphaBetaDiv.md step 3.5 for instructions on this). 
+
+```
+biom_core <- biomfile
+print(biom_core)
+```
+
+# Create a new column for full organism names (Genus + Species), update phyloseq object, transform to relative abundance
+
+```
+tax_table_full <- as.data.frame(tax_table(biom_core))
+tax_table_full$FullName <- paste(tax_table_full$"Genus", tax_table_full$"Species")
+
+# update the tax_table in the phyloseq object
+
+tax_table(biom_core) <- as.matrix(tax_table_full)
+
+core_rel <- microbiome::transform(biom_core, "compositional")
+```
+
+**Step 2 - aggregate at taxonomic levels**
+
+Make sure data is **compositional**, and aggregate at different taxonomic levels for different analyses. You can change “Phylum” to any other level of interest
+
+```
+core_rel.phy <- aggregate_taxa(core_rel, level="Phylum")
+```
+
+**Step 3 - calculate the core microbiome**
+
+Find the core microbiome in the phyloseq object, where detection and prevelance can be changed to different numbers to specify how 'strict' the definition of core is (max=1, min=0)
+Detection is the level at which each taxa must be found in each sample for it to be included (ie. detection = 0.0 means that if the taxa is included in a sample to ANY degree it will be included. Detection = 0.5 means that half of the sample must be that specific taxa in order to be included in the core). Prevalence is the number of samples which have the taxa in them (ie. prevalence = 0.99 means that 99% of the samples must have a taxa (at the level specified by detection) for that taxa to be included. Prevalance = 0.25 means that the taxa must be found in 25% of samples to be included). 
+
+```
+biom_core90.phy <- aggregate_rare(biom_phy_core, "unique", detection = 0.0, prevalence = 0.99)
+biom_core90.phy <- taxa(biom_core90.phy)
+print(lysol.all.core.taxa90.phy)
+```
+
+Data can be subsetted by different locations using the subset() function, and core microbiome analysis can be run on different sets of data (ie. all samples in one household or from one city) at different phylogenetic levels and with different detection and prevalence levels.
+
+Note - the core microbiome for ARGs and VFs was determined using Venn diagrams (inputs were lists of the detected genes in each composite sample. Core genes were those found in the middle of the Venn diagram)
+
+### Part 4 - ANCOM-BC calculations
+
+Convert variables of interest to factors
+```
+ps.filt <- biomfile
+
+sample_data(ps.filt)$Geographic_Location <- factor(
+  sample_data(ps.filt)$Geographic_Location
+)
+sample_data(ps.filt)$Household_Location <- factor(
+  sample_data(ps.filt)$Household_Location
+)
+```
+
+Run ANCOM-BC analysis - change tax_level, fix_formula arguments, and group to fit your data
+
+```
+res <- ancombc2(
+  data = ps.filt,
+  tax_level = "Phylum",
+  fix_formula = "Geographic_Location + Household_Location",
+  group = "Geographic_Location",
+  global = TRUE,
+  pairwise = TRUE,
+  dunnet = FALSE,
+  trend = FALSE,
+  p_adj_method = "BH",
+  prv_cut = 0.10,
+  lib_cut = 1000,
+  alpha = 0.05
+)
+
+# confirm data structure
+names(res$res)
+
+# generate tsv containing significant global results
+global <- res$res_global
+sig.global <- global %>%
+  filter(q_val < 0.05)
+
+write.table(
+  sig.global,
+  file = "ANCOMBC2_global_results_phylum_significant.tsv",
+  sep = "\t",
+  quote = FALSE,
+  row.names = FALSE
+)
+
+# generate tsv containing pairwise results
+pairwise <- res$res_pair
+
+write.table(
+  pairwise,
+  file = "ANCOMBC2_pairwise_results_phylum_all.tsv",
+  sep = "\t",
+  quote = FALSE,
+  row.names = FALSE
+)
+
+# generate summary tables from pairwise results for easier interpretation - reference level = B, you will need to change A, B, and C to match your variables. This code will be different with a larger number of variables.
+
+summary_table <- pairwise %>%
+  select(
+    taxon,
+    lfc_Geographic_LocationA,
+    lfc_Geographic_LocationC,
+    lfc_Geographic_LocationC_Geographic_LocationA
+  ) %>%
+  rename(
+    Taxon = taxon,
+    `A vs B` = lfc_Geographic_LocationA,
+    `C vs B` = lfc_Geographic_LocationC,
+    `C vs A` =
+      lfc_Geographic_LocationC_Geographic_LocationA
+  )
+
+summary_table <- pairwise %>%
+  left_join(
+    global %>% select(taxon, q_val),
+    by = "taxon"
+  ) %>%
+  select(
+    taxon,
+    q_val,
+    lfc_Geographic_LocationA,
+    lfc_Geographic_LocationC,
+    lfc_Geographic_LocationC_Geographic_LocationA
+  ) %>%
+  rename(
+    Taxon = taxon,
+    `Global q-value` = q_val,
+    `A vs B` = lfc_Geographic_LocationA,
+    `C vs B` = lfc_Geographic_LocationC,
+    `C vs A` =
+      lfc_Geographic_LocationC_Geographic_LocationA
+  )
+
+sig_taxa <- global %>%
+  filter(q_val < 0.05) %>%
+  pull(taxon)
+
+summary_table <- summary_table %>%
+  filter(Taxon %in% sig_taxa)
+
+# export tsv
+write.table(
+  summary_table,
+  "ANCOMBC2_Phylum_summary_geoloc.tsv",
+  sep = "\t",
+  quote = FALSE,
+  row.names = FALSE
+)
+```
