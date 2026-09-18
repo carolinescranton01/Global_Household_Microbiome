@@ -30,8 +30,8 @@ nano analysis.sh
 
 Next, install the following packages to run the different ARG/VF detection pipelines and kraken. You may have some of these installed already (ie. Kraken2 in the Metagenomics environment), which you can try to install them again to check (which will just update them) or skip them. Documentation for installation is below:
 
-**Deeparg**
-**NOTE: as of 10-8-25, DeepARG install does not work. I am trying to figure it out but the database is not on the HPC and the command in the script will not run**
+**DeepARG**
+**NOTE: as of 10-8-25, DeepARG install does not work. I am trying to figure it out but the database is not on the HPC and the command in the script will not run. DeepARG was not used in the global household microbiome analysis**
 To run DeepARG, you should create a separate environment since it requires python 2.7 which is outdated. Then, you will install all of the packages as follows using one line of code which specifies which versions
 
 ```
