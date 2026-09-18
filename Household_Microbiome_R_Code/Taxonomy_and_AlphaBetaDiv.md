@@ -23,6 +23,9 @@ BiocManager::install("writexl") # Version 1.5.4
 BiocManager::install("openxlsx") # Version 4.8.2.1
 BiocManager::install("vegan") # Version 2.7.3
 BiocManager::install("ggplot2") # Version 4.0.2
+BiocManager::install("decontam") # Version 1.32.0
+BiocManager::install("multcompView") # Version 0.1.11
+
 
 # If packages are already installed, load via library()
 
@@ -38,6 +41,8 @@ library(writexl)
 library(openxlsx)
 library(vegan)
 library(ggplot2)
+library(decontam)
+library(multcompView)
 ```
 
 **Step 2: Import biom file:**
@@ -86,7 +91,67 @@ ntaxa(biomfile)-ntaxa(biomfile_nohuman2)
 biomfile <- subset_taxa(biomfile, Domain == "Bacteria")
 ```
 
-Now we should just be left with bacteria reads, and can start analyzing these reads
+Now we should just be left with bacteria reads
+
+Decontaminate reads using decontam package and negative control samples
+```
+# create a new columns for negative controls, based on metadata value. In this case there was a column called Sample_Type, with values "Negative_Control" and "Sample". This command makes a new column for this analysis called is.neg, where the values are either TRUE or FALSE
+sample_data(biomfile)$is.neg <-
+  sample_data(biomfile)$Sample_Type == "Negative_Control"
+
+# this identifies contaminants based on the prevalence of taxa in the negative control samples vs the test samples
+contam_df <- isContaminant(
+  biomfile,
+  method = "prevalence",
+  conc = "reads",
+  neg="is.neg"
+)
+
+# this creates a table which lists the contaminant taxa
+contaminants_to_remove <- rownames(contam_df)[contam_df$p <= 0.05]
+
+# this removes contaminants from the sample data
+biomfile_clean <- prune_taxa(
+  !(taxa_names(biomfile) %in% contaminants_to_remove),
+  biomfile
+)
+
+# generate read statistics before/after contaminant filtering as a quality check
+
+# total number of reads per sample before decontamination
+raw_reads <- sample_sums(biomfile_clean)
+# total number of reads per sample after decontamination
+clean_reads <- sample_sums(biomfile)
+
+# summarize the total reads and reads lost
+read_summary <- tibble(
+  Status = c("Before Decontam", "After Decontam"),
+  Total_Reads = c(sum(raw_reads), sum(clean_reads)),
+  Average_Reads = c(mean(raw_reads), mean(clean_reads)),
+  Min_Reads = c(min(raw_reads), min(clean_reads)),
+  Max_Reads = c(max(raw_reads), max(clean_reads))
+)
+print(read_summary)
+
+# count the number of taxa lost
+ntaxa_before <- ntaxa(biomfile)
+ntaxa_after <- ntaxa(biomfile_clean)
+taxa_lost <- ntaxa_before - ntaxa_after
+
+message(paste("Taxa before decontam:", ntaxa_before))
+message(paste("Taxa after decontam:", ntaxa_after))
+message(paste("Total Taxa removed:", taxa_lost))
+
+# OPTIONAL - rename biomfile_clean to biomfile for consistence with downstream code, remove negative control samples (no longer needed)
+biomfile <- biomfile_clean
+
+# remove negative control samples
+biomfile  <- subset_samples(
+  biomfile,
+  Sample_Type != "Negative_Control"
+)
+```
+
 
 ### Part 2 - figures and diversity analysis
 
@@ -134,15 +199,10 @@ barplot(sample_sums(biom_rar), las =2)
 ```
 biom.alphadiv <- alpha(biom_rar, index = "all")
 biom.alphadiv$SampleID <- rownames(biom.alphadiv) # sample IDs are the last column
-
-write.xlsx(biom.alphadiv, file = "alpha.xlsx")
-# add metadata separately in Excel
-diversity_dataframe <- read.xlsx(xlsxFile="alpha.xlsx")
+diversity_dataframe <- merge(biom.alphadiv, metadata, by = "SampleID") # note: change metadata to your metadata object name if needed
 ```
 
-**NOTE**: Alpha diversity was exported into excel and added into a new dataframe with sample metadata (sample ID, geographic location, household location, etc) which was re-uploaded to R and used for ggplot box+whisker plots which used ANOVA for statistical analysis. 
-
-Below is an example of the code for a plot with statistics. X can be changed to different columns in the metadata, and Y can be changed to different alpha diversity metrics, calculated with the command above:
+Below is an example of the code for a plot with statistics. X can be changed to different columns in the metadata, and Y can be changed to different alpha diversity metrics, calculated with the command above. Tukey's post-hoc test can be done for significant comparisons
 
 ```
 household_shannon_div <- ggboxplot(diversity_dataframe, x = "Household_Location", y = "diversity_shannon") +
@@ -152,6 +212,12 @@ household_shannon_div <- ggboxplot(diversity_dataframe, x = "Household_Location"
     labs(title="Shannon Diversity in Households in Different Cities") +
     stat_compare_means(aes(group=Household_Location), label = 'p.format', method='anova', label.y=5, label.x=1.5) +
     facet_wrap(~Geographic_Location)
+
+# Tukey's post-hoc test
+house_aov <- aov(diversity_shannon ~ Household_Location, data = diversity_dataframe)
+tuk <- TukeyHSD(house_aov)
+letters <- multcompLetters4(house_aov, tuk)
+print(letters) # prints significance letters, where variables that share letters (ie a, ab, and abc) are not significantly different from each other
 ```
 
 **Beta diversity calculations and PERMANOVA test**
