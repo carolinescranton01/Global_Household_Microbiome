@@ -181,8 +181,7 @@ print(letters)
 
 Beta diversity on genes uses the same re-formatted data as above. In this example data is called wide_data_res (same as the alpha diversity's wide data). Metadata is structured the same, again only for composites in this example, as only composite data was used for this particular analysis. 
 
-Generating bray-curtis distances, formatting as a data frame, generate PC values for axis, and attach to metadata: 
-
+Generating bray-curtis distances, formatting as a data frame, generate PC values for axis, and attach to metadata for plotting:
 ```
 bray_curtis_dist <- vegdist(wide_data_res[,-1], method = "bray")
 dist_matrix <- as.matrix(bray_curtis_dist)
@@ -231,30 +230,66 @@ res_beta <- ggplot(
 print(res_beta)
 ```
 
-Running a PERMANOVA test on wide data and test for beta dispersion via ANOVA
+Running a dbRDA test on wide data and test for beta dispersion via ANOVA (ensure that data of interest and metadata match - ie. with the ARGs and VFs, some samples had no ARGs/VFs detected. They would be dropped in this test and would need to be dropped from the metadata as well). wide_data_res was used above in the PCoA plot 
 
 ```
-adonis1 <- adonis2(
-  dist_matrix ~ Household_Location,
-  data = metadata_res,
+# Calculate distance matrix
+wide_data_res <- wide_data_res %>% filter(rowSums(is.na(.)) == 0)    # remove NAs (should have none)
+wide_data_res<- as.data.frame(wide_data_res)                         # convert to dataframe
+bray_curtis_dist <- vegdist(wide_data_res[,-1], method = "bray")     # calculate bray-curtis distances
+dist_matrix <- as.matrix(bray_curtis_dist)                           # get distance matrix
+
+# Convert variables of interest to categorical
+metadata$city_house <- factor(metadata$city_house)    # city_house variable specifies which house the sample came in per city, ie City1_House1, City2_House2)
+metadata$Geographic_Location <- factor(metadata$Geographic_Location)
+metadata$Household_Location <- factor(metadata$Household_Location)
+
+## --- QUESTION: Is there variation in the genes found on different within-household locations (using full dataset) --- ##
+# Restrict permutations to within-house only (to account for unique-household variation)
+perm_houseloc <- how(
+  nperm = 9999,
+  blocks = metadata$city_house
+)
+
+# dbRDA code
+dbrda_houseloc <- dbrda(
+  dist_matrix ~
+    Household_Location +
+    Condition(city_house),
+  data = metadata
+)
+
+# ANOVA to test for significance
+anova(
+  dbrda_houseloc,
+  permutations = perm_houseloc,
   by = "margin"
 )
 
-dist_matrix_dist <- as.dist(dist_matrix)
+# Adjusted R2 value
+RsquareAdj(dbrda_houseloc)
 
-disp <- betadisper(
-  dist_matrix_dist,
-  metadata_res$Household_Location
+# Check dispersion on Q1 variable (household location, restricted to each house)
+
+disp_houseloc <- betadisper(
+  bray_curtis_dist,    
+  group = metadata$Household_Location,
+  type = "median"
 )
 
-print(adonis1)
-anova(disp)
+# Permutation test - restrict permutations as done in the dbRDA test
+perm_houseloc_disp <- how(nperm = 9999)
+setBlocks(perm_houseloc_disp) <- metadata$city_house
+
+# Test for dispersion
+disp_houseloc_test <- permutest(
+  disp_houseloc,
+  permutations = perm_houseloc_disp
+)
+
+# View results
+print(disp_houseloc_test)
 ```
-
-
-
-
-
 
 
 
